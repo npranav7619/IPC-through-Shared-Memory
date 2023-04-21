@@ -22,7 +22,7 @@ struct connect_channel {
 struct communication_channel {
     int request_type;
     int client_id;
-    int data[2];
+    int data[3]; // Added a third element for operation type
 };
 
 void *calculation_thread(void *arg);
@@ -43,45 +43,40 @@ int main(int argc, char **argv) {
     struct connect_channel *connect_channel_ptr = (struct connect_channel *) shmat(connect_shmid, NULL, 0);
     struct communication_channel *communication_channel_ptr = (struct communication_channel *) shmat(communication_shmid, NULL, 0);
 
-    memset(connect_channel_ptr, 0, MAX_SHM_SIZE);
-    memset(communication_channel_ptr, 0, MAX_SHM_SIZE);
-
-    printf("Server started\n");
+    int client_id = 0;
 
     while (1) {
-        if (connect_channel_ptr->client_id > 0) {
-            int client_id = connect_channel_ptr->client_id;
-
-            if (communication_channel_ptr->request_type == CALCULATION_REQUEST) {
-                int num1 = communication_channel_ptr->data[0];
-                int num2 = communication_channel_ptr->data[1];
-                int result;
-                int operation = communication_channel_ptr->data[2];
-
-                if (operation == 1) {
-                    result = num1 + num2;
-                } else if (operation == 2) {
-                    result = num1 - num2;
-                } else if (operation == 3) {
-                    result = num1 * num2;
-                } else if (operation == 4) {
-                    if (num2 == 0) {
-                        result = -1; // Division by zero error
-                    } else {
-                        result = num1 / num2;
-                    }
-                } else {
-                    result = -2; // Invalid operation error
-                }
-
-                printf("Client %d requested calculation: %d %d %d = %d\n", client_id, num1, num2, operation, result);
-
-                communication_channel_ptr->request_type = 0;
-                communication_channel_ptr->data[2] = result;
-            }
+        if (connect_channel_ptr->client_id != client_id) {
+            client_id = connect_channel_ptr->client_id;
+            printf("Client %d registered\n", client_id);
         }
 
-        usleep(100);
+        if (communication_channel_ptr->request_type == CALCULATION_REQUEST) {
+            int num1 = communication_channel_ptr->data[0];
+            int num2 = communication_channel_ptr->data[1];
+            int operation = communication_channel_ptr->data[2];
+
+            int result;
+            if (operation == 1) {
+                result = num1 + num2;
+            } else if (operation == 2) {
+                result = num1 - num2;
+            } else if (operation == 3) {
+                result = num1 * num2;
+            } else if (operation == 4) {
+                result = num1 / num2;
+            } else {
+                printf("Invalid operation type\n");
+                continue;
+            }
+
+            printf("Client %d requested calculation of %d %d\n", client_id, num1, num2);
+
+            communication_channel_ptr->request_type = 0; // Reset request type
+            communication_channel_ptr->data[0] = result;
+
+            printf("Sending result %d to client %d\n", result, client_id);
+        }
     }
 
     shmdt(connect_channel_ptr);
