@@ -22,10 +22,8 @@ struct connect_channel {
 struct communication_channel {
     int request_type;
     int client_id;
-    int data[2];
+    int data[3];
 };
-
-void *calculation_thread(void *arg);
 
 int main(int argc, char **argv) {
     int connect_shmid = shmget(CONNECT_CHANNEL_ID, MAX_SHM_SIZE, 0666 | IPC_CREAT);
@@ -60,17 +58,27 @@ int main(int argc, char **argv) {
             connect_channel_ptr->client_id = 0;
             printf("Client %d unregistered\n", client_id);
         } else if (request_type == CALCULATION_REQUEST) {
-            int num1, num2;
+            int num1, num2, operation;
             printf("Enter two numbers: ");
             scanf("%d %d", &num1, &num2);
+            printf("Enter operation type (1=add, 2=subtract, 3=multiply, 4=divide): ");
+            scanf("%d", &operation);
 
             communication_channel_ptr->request_type = CALCULATION_REQUEST;
             communication_channel_ptr->client_id = client_id;
             communication_channel_ptr->data[0] = num1;
             communication_channel_ptr->data[1] = num2;
+            communication_channel_ptr->data[2] = operation;
 
-            pthread_t calculation_thread_id;
-            pthread_create(&calculation_thread_id, NULL, calculation_thread, communication_channel_ptr);
+            printf("Sending calculation request to server...\n");
+            sleep(1);
+
+            if (connect_channel_ptr->client_id == 0) {
+                printf("Server is not available\n");
+                continue;
+            }
+
+            printf("Received result from server: %d\n", communication_channel_ptr->data[0]);
         } else {
             printf("Invalid request type\n");
         }
@@ -81,35 +89,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
-void *calculation_thread(void *arg) {
-    struct communication_channel *communication_channel_ptr = (struct communication_channel *) arg;
-    int client_id = communication_channel_ptr->client_id;
-    int num1 = communication_channel_ptr->data[0];
-    int num2 = communication_channel_ptr->data[1];
-
-    int result;
-    int operation;
-    printf("Enter operation type (1=add, 2=subtract, 3=multiply, 4=divide): ");
-    scanf("%d", &operation);
-
-    if (operation == 1) {
-        result = num1 + num2;
-    } else if (operation == 2) {
-        result = num1 - num2;
-    } else if (operation == 3) {
-        result = num1 * num2;
-    } else if (operation == 4) {
-        if (num2 == 0) {
-        printf("Error: Cannot divide by zero\n");
-        return NULL;
-    }
-    result = num1 / num2;
-    }
-     else {
-    printf("Invalid operation type\n");
-    return NULL;
-    }
-    printf("Result: %d\n", result);
-    return NULL;
-    }
