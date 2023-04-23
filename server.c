@@ -53,6 +53,24 @@ int even_by_odd(num1){
     }
     return 1;
 }
+int isprime(num1){
+    int i;
+	for(i=2;i<=num1/2;i++)
+	{
+		if(num1%i!=0)
+			continue;
+		else
+			return 1;
+	}
+	return 0;
+}
+int isnegative(num1){
+    if (num1 > 0){
+        return 0;
+    }
+    return 1;
+}
+
 
 void *thread_function(void *arg)
 {
@@ -78,8 +96,14 @@ void *thread_function(void *arg)
     {
         *thapx = div_thread(num1, num2);
     }
-    else if(operation ==5){
+    else if (operation == 5){
         *thapx = even_by_odd(num1);
+    }
+    else if (operation == 6){
+        *thapx = isprime(num1);
+    }
+    else if (operation == 7){
+        *thapx = isnegative(num1);
     }
 
     pthread_mutex_unlock(&mutex);                         //mutex unlocked
@@ -158,3 +182,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
