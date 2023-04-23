@@ -7,6 +7,6 @@ Client has 3 options
 
 Register -> server returns with a unique key
 
-Unregister -> server deletes the pid from the list of known pids
+Unregister -> server deletes the pid from the list of known pids and makes it so that the client is unable to calculate
 
-Calculate -> client can send numbers to the server which is calculated using threads and then returned back to the client
+Calculation -> client can send numbers to the server which is calculated using threads and then returned back to the client
