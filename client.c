@@ -78,7 +78,9 @@ int main(int argc, char **argv)
                 printf("Enter number: ");
 
                 scanf("%d", &num1);
-                printf("0 for even 1 for odd");
+                printf("0 for even 1 for odd\n");
+                printf("0 for prime 1 for non-prime\n");
+                printf("0 for positive and 1 for negative\n");
                 num2 = __INT_MAX__;
             }
 
